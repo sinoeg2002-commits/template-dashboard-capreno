@@ -4,15 +4,30 @@ Template dashboard demo komersial Capreno (single-file HTML, tanpa build step), 
 
 ## Isi repo
 
-- **`template-dashboard-capreno.html`** — versi **live**: saat dibuka, otomatis mengambil data terbaru langsung dari 3 spreadsheet Google Sheets ("Demo SS", "Demo SS1", "Demo SS2" milik akun `demoherbisida@gmail.com`), menggabungkannya, lalu merender dashboard. Tidak ada data yang di-hardcode di file ini.
+- **`template-dashboard-capreno.html`** — versi **live**: saat dibuka, otomatis mengambil data terbaru langsung dari spreadsheet Google Sheets sumber tiap wilayah ("Demo SS", "Demo SS1" dari akun `demoherbisida@gmail.com`, "Demo EJ", "Demo SUL"/"Demo Sul 2"), menggabungkannya, lalu merender dashboard **nasional** dengan sidebar filter wilayah. Tidak ada data yang di-hardcode di file ini.
 - **`contoh-dashboard-capreno.html`** — salinan persis dashboard South Sumatera lengkap dengan 21 data demo asli (data statis, tidak live), sebagai referensi format data & tampilan saat sudah terisi penuh.
 
-## Cara kerja `template-dashboard-capreno.html` (live Google Sheets)
+## Cakupan wilayah & sidebar filter
 
-Saat halaman dimuat, skrip di bagian `SHEET_IDS` mengambil sheet bernama **"Demo"** dari tiap spreadsheet lewat endpoint publik Google (`.../gviz/tq?tqx=out:json&sheet=Demo`), mem-parsing 131 kolomnya (sama persis format kolom antar ketiga sheet, sudah dicek konsisten), lalu memetakannya ke struktur data dashboard. Record dengan ID demo (`Nomor Demo`) yang sama di lebih dari satu sheet otomatis di-dedup (prioritas: SS1 → SS2 → SS, sheet yang disebut lebih dulu menang).
+Dashboard ini dirancang untuk menampung demo dari **6 wilayah**: SS, EJ EI, Sulawesi, NS, CJ, WJ. Sidebar di sisi kiri (menyatu dengan header, tetap terlihat saat di-scroll di mode Handphone) berisi filter eksklusif:
 
-**Menambah/mengganti sumber sheet:** edit objek `SHEET_IDS` di dalam file (cari `const SHEET_IDS = {`), isi dengan ID spreadsheet (bagian di URL antara `/d/` dan `/edit`). Spreadsheet tujuan wajib:
-1. Punya sheet/tab bernama persis **"Demo"**, dengan susunan kolom yang sama (131 kolom, A sampai EA, mengikuti form entri demo komersial Capreno standar).
+`Nasional` (gabungan semua wilayah) · `SS` · `EJ EI` · `Sulawesi` · `NS` · `CJ` · `WJ`
+
+Tiap tombol menampilkan jumlah demo di wilayah itu. Memilih satu wilayah akan mempersempit seluruh dashboard (skor, peta, filter lain, analisis teks) ke demo wilayah tersebut saja; `Nasional` menampilkan gabungan semuanya. Saat ini baru **SS, EJ EI, dan Sulawesi** yang sudah ada sumber datanya — `NS`, `CJ`, `WJ` tetap muncul di sidebar (jumlah 0) dan tampil kosong tanpa error, siap diisi begitu sheet sumbernya tersedia (lihat bagian berikutnya).
+
+## Cara kerja `template-dashboard-capreno.html` (live Google Sheets, multi-wilayah)
+
+Saat halaman dimuat, skrip di bagian `SHEET_SOURCES` mengambil sheet bernama **"Demo"** dari tiap spreadsheet sumber lewat endpoint publik Google (`.../gviz/tq?tqx=out:json&sheet=Demo&headers=1`), membaca baris headernya, lalu **memetakan kolom secara otomatis berdasarkan nama/label kolom** (fungsi `resolveColumns`) — bukan berdasarkan posisi tetap. Ini penting karena sheet "Demo" tiap wilayah ternyata punya jumlah & urutan kolom yang **berbeda-beda** (SS-family 131 kolom, EJ 112 kolom, Sulawesi 102 kolom, dst) walau isi datanya setara; resolver mengenali tiap field lewat teks label section ("Data 7HSA", "Data 0HSA (saat aplikasi)", dst) dan nama kolomnya, sehingga sheet sumber wilayah baru (CJ/WJ/NS) tidak perlu punya susunan kolom identik dengan SS — cukup pakai nama kolom & section yang sama (mengikuti form demo komersial Capreno standar).
+
+Beberapa field diturunkan otomatis kalau sheet sumber tidak punya kolom eksplisit untuk itu:
+- **Kabupaten** — kalau tidak ada kolom "Kabupaten", dicoba diambil dari teks "Lokasi Demo" dengan pola `Kabupaten <nama>`; kalau tidak ketemu juga, tampil sebagai "Tidak diisi".
+- **Hari Aplikasi** (HST) — dihitung dari selisih "Tanggal Tanam" dan "Tanggal Aplikasi" kalau tidak ada kolom eksplisit.
+- **Timing Aplikasi** — diturunkan dari Hari Aplikasi di atas ke salah satu kelompok: `<10 HST`, `10-15 HST`, `16-20 HST`, `21-30 HST`, `>30 HST`.
+
+Record dengan ID demo (`Nomor Demo`) yang sama di lebih dari satu sheet pada wilayah yang sama otomatis di-dedup (sheet yang disebut lebih dulu di `SHEET_SOURCES` menang).
+
+**Menambah/mengganti sumber sheet (termasuk mengisi NS/CJ/WJ):** edit array `SHEET_SOURCES` di dalam file (cari `const SHEET_SOURCES = [`), tambahkan entri `{ tag: '<label bebas>', wilayah: '<salah satu dari SS/EJ EI/Sulawesi/NS/CJ/WJ>', id: '<ID spreadsheet>' }` (ID spreadsheet = bagian di URL antara `/d/` dan `/edit`). Spreadsheet tujuan wajib:
+1. Punya sheet/tab bernama persis **"Demo"**, mengikuti form entri demo komersial Capreno standar (nama kolom & section boleh beda jumlah/urutan dari wilayah lain — lihat di atas).
 2. Dibagikan dengan akses **"Anyone with the link: Viewer"** — karena pengambilan data dilakukan langsung dari browser pengguna tanpa login, bukan lewat server.
 
 **Butuh internet setiap kali dibuka** — tanpa koneksi, pojok kanan atas bar "Tampilan" akan menampilkan "Gagal memuat data — cek koneksi internet" dan dashboard tampil kosong (0 demo), tanpa error/crash.
@@ -21,6 +36,7 @@ Untuk dashboard **statis** (data dikunci di dalam file, tidak berubah walau shee
 
 ## Fitur yang sudah termasuk
 
+- Sidebar filter wilayah (Nasional/SS/EJ EI/Sulawesi/NS/CJ/WJ) — lihat bagian di atas.
 - 3 halaman: Skoring Herbi FP vs Capreno, Win-Lose Capreno - Herbi FP, Dokumentasi Demo Komersial.
 - Filter multi-kriteria (herbi pembanding, varietas, petugas, lokasi, kabupaten, timing aplikasi, fase daun gulma, olah tanah, pola tanam, bulan tanam) dengan jumlah demo per opsi.
 - Peta sebaran demo (basemap Esri, 2 gaya: Minimal & Terrain) — butuh koneksi internet saat dibuka; tanpa koneksi otomatis fallback ke grid koordinat.
