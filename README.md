@@ -30,6 +30,8 @@ Record dengan ID demo (`Nomor Demo`) yang sama di lebih dari satu sheet pada wil
 1. Punya sheet/tab bernama persis **"Demo"**, mengikuti form entri demo komersial Capreno standar (nama kolom & section boleh beda jumlah/urutan dari wilayah lain — lihat di atas).
 2. Dibagikan dengan akses **"Anyone with the link: Viewer"** — karena pengambilan data dilakukan langsung dari browser pengguna tanpa login, bukan lewat server.
 
+> **TODO — NS, CJ, WJ:** belum ada sheet sumbernya (per Okt 2026), jadi `SHEET_SOURCES` baru berisi entri SS/EJ EI/Sulawesi. Begitu sheet "Demo" untuk NS/CJ/WJ sudah dibuat & dibagikan sesuai syarat di atas, tinggal un-comment 3 baris TODO yang sudah disiapkan di bawah array `SHEET_SOURCES` dalam file, lalu isi `id` masing-masing dengan ID spreadsheet-nya — tidak perlu perubahan kode lain (resolver kolom & sidebar sudah menangani wilayah baru secara otomatis).
+
 **Butuh internet setiap kali dibuka** — tanpa koneksi, pojok kanan atas bar "Tampilan" akan menampilkan "Gagal memuat data — cek koneksi internet" dan dashboard tampil kosong (0 demo), tanpa error/crash.
 
 Untuk dashboard **statis** (data dikunci di dalam file, tidak berubah walau sheet sumber diedit lagi) — gunakan pola `contoh-dashboard-capreno.html` sebagai acuan: ganti bagian live-fetch dengan `const DATA = [...]` berisi data final.

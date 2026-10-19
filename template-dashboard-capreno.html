@@ -970,6 +970,13 @@ const SHEET_SOURCES = [
   { tag: 'EJ', wilayah: 'EJ EI', id: '1oI4O-T3OHCrnIdLQAK_JjQAMpYc-4xf5m3OPN1XrDK0' },
   { tag: 'SUL1', wilayah: 'Sulawesi', id: '13FCZTPcuPSsZPdd2feFqVZKPUlA2dfbQhOLxSoG2HmM' },
   { tag: 'SUL2', wilayah: 'Sulawesi', id: '1kNqo2Nikrhxx7wFO7QcDnpc2DNGgWEhBUr2PHxwZpXY' },
+  // TODO: NS, CJ, WJ belum ada sheet sumbernya (per Okt 2026). Begitu sheet "Demo" wilayah
+  // ini sudah dibuat (ikuti form standar, section/nama kolom sama; jumlah & urutan kolom
+  // boleh beda -- lihat resolveColumns) dan dibagikan "Anyone with the link: Viewer",
+  // un-comment & isi ID spreadsheet-nya (bagian URL antara /d/ dan /edit), contoh:
+  // { tag: 'NS', wilayah: 'NS', id: '<ID_SPREADSHEET_NS>' },
+  // { tag: 'CJ', wilayah: 'CJ', id: '<ID_SPREADSHEET_CJ>' },
+  // { tag: 'WJ', wilayah: 'WJ', id: '<ID_SPREADSHEET_WJ>' },
 ];
 function gdId(url) {
   if (!url) return null;
