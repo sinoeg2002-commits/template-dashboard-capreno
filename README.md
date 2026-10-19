@@ -4,17 +4,17 @@ Template dashboard demo komersial Capreno (single-file HTML, tanpa build step), 
 
 ## Isi repo
 
-- **`template-dashboard-capreno.html`** — versi siap pakai. Array data (`DATA`) dikosongkan, judul & label wilayah diganti placeholder (`[Nama Wilayah]`, `[Nama sumber data]`, `[jumlah]`). Gunakan ini sebagai titik awal untuk wilayah/periode demo baru.
-- **`contoh-dashboard-capreno.html`** — salinan persis dashboard South Sumatera lengkap dengan 21 data demo asli, sebagai referensi format data & tampilan saat sudah terisi.
+- **`template-dashboard-capreno.html`** — versi siap pakai, berisi **1 contoh demo** ("Lampung A 01") agar struktur data terlihat jelas sejak dibuka, bukan sekadar kerangka kosong. Gunakan ini sebagai titik awal: hapus/ganti contohnya, lalu tambahkan data demo wilayah Anda sendiri.
+- **`contoh-dashboard-capreno.html`** — salinan persis dashboard South Sumatera lengkap dengan 21 data demo asli, sebagai referensi tambahan untuk format data & tampilan saat sudah terisi penuh.
 
 ## Cara pakai `template-dashboard-capreno.html`
 
-1. Buka file dengan editor teks, cari `const DATA = []` dan isi dengan array data demo (lihat struktur tiap record di `contoh-dashboard-capreno.html`, variabel `DATA`, baris yang sama).
-2. Ganti placeholder berikut dengan nama wilayah/sumber data yang sesuai:
-   - `<title>Template Dashboard Demo Komersial Capreno</title>`
-   - `Dashboard Demo Komersial Capreno [Nama Wilayah]`
-   - `Total demo komersial di [Nama Wilayah]`
-   - `Sumber: [Nama sumber data], [jumlah] demo komersial.` (bagian footer)
+1. Buka file dengan editor teks, cari `const DATA = [{ "id": "Lampung A 01", ... }]`. Record contoh ini berisi semua field yang dipakai dashboard (skor, foto, komentar, blind assessment, dll) — salin strukturnya untuk tiap demo baru, atau hapus dan ganti seluruhnya dengan array demo Anda sendiri.
+2. Ganti nama wilayah "Lampung" (judul, label skor, footer) dengan wilayah/sumber data yang sesuai:
+   - `<title>Dashboard Demo Komersial Capreno Lampung (contoh 1 demo)</title>`
+   - `Dashboard Demo Komersial Capreno Lampung`
+   - `Total demo komersial di Lampung`
+   - `Sumber: Demo_Lampung, 1 demo komersial.` (bagian footer)
 3. Simpan, lalu buka file `.html`-nya langsung di browser — tidak perlu server atau instalasi apa pun.
 
 ## Fitur yang sudah termasuk
