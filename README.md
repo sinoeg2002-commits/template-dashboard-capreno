@@ -4,18 +4,20 @@ Template dashboard demo komersial Capreno (single-file HTML, tanpa build step), 
 
 ## Isi repo
 
-- **`template-dashboard-capreno.html`** — versi siap pakai, berisi **1 contoh demo** ("Lampung A 01") agar struktur data terlihat jelas sejak dibuka, bukan sekadar kerangka kosong. Gunakan ini sebagai titik awal: hapus/ganti contohnya, lalu tambahkan data demo wilayah Anda sendiri.
-- **`contoh-dashboard-capreno.html`** — salinan persis dashboard South Sumatera lengkap dengan 21 data demo asli, sebagai referensi tambahan untuk format data & tampilan saat sudah terisi penuh.
+- **`template-dashboard-capreno.html`** — versi **live**: saat dibuka, otomatis mengambil data terbaru langsung dari 3 spreadsheet Google Sheets ("Demo SS", "Demo SS1", "Demo SS2" milik akun `demoherbisida@gmail.com`), menggabungkannya, lalu merender dashboard. Tidak ada data yang di-hardcode di file ini.
+- **`contoh-dashboard-capreno.html`** — salinan persis dashboard South Sumatera lengkap dengan 21 data demo asli (data statis, tidak live), sebagai referensi format data & tampilan saat sudah terisi penuh.
 
-## Cara pakai `template-dashboard-capreno.html`
+## Cara kerja `template-dashboard-capreno.html` (live Google Sheets)
 
-1. Buka file dengan editor teks, cari `const DATA = [{ "id": "Lampung A 01", ... }]`. Record contoh ini berisi semua field yang dipakai dashboard (skor, foto, komentar, blind assessment, dll) — salin strukturnya untuk tiap demo baru, atau hapus dan ganti seluruhnya dengan array demo Anda sendiri.
-2. Ganti nama wilayah "Lampung" (judul, label skor, footer) dengan wilayah/sumber data yang sesuai:
-   - `<title>Dashboard Demo Komersial Capreno Lampung (contoh 1 demo)</title>`
-   - `Dashboard Demo Komersial Capreno Lampung`
-   - `Total demo komersial di Lampung`
-   - `Sumber: Demo_Lampung, 1 demo komersial.` (bagian footer)
-3. Simpan, lalu buka file `.html`-nya langsung di browser — tidak perlu server atau instalasi apa pun.
+Saat halaman dimuat, skrip di bagian `SHEET_IDS` mengambil sheet bernama **"Demo"** dari tiap spreadsheet lewat endpoint publik Google (`.../gviz/tq?tqx=out:json&sheet=Demo`), mem-parsing 131 kolomnya (sama persis format kolom antar ketiga sheet, sudah dicek konsisten), lalu memetakannya ke struktur data dashboard. Record dengan ID demo (`Nomor Demo`) yang sama di lebih dari satu sheet otomatis di-dedup (prioritas: SS1 → SS2 → SS, sheet yang disebut lebih dulu menang).
+
+**Menambah/mengganti sumber sheet:** edit objek `SHEET_IDS` di dalam file (cari `const SHEET_IDS = {`), isi dengan ID spreadsheet (bagian di URL antara `/d/` dan `/edit`). Spreadsheet tujuan wajib:
+1. Punya sheet/tab bernama persis **"Demo"**, dengan susunan kolom yang sama (131 kolom, A sampai EA, mengikuti form entri demo komersial Capreno standar).
+2. Dibagikan dengan akses **"Anyone with the link: Viewer"** — karena pengambilan data dilakukan langsung dari browser pengguna tanpa login, bukan lewat server.
+
+**Butuh internet setiap kali dibuka** — tanpa koneksi, pojok kanan atas bar "Tampilan" akan menampilkan "Gagal memuat data — cek koneksi internet" dan dashboard tampil kosong (0 demo), tanpa error/crash.
+
+Untuk dashboard **statis** (data dikunci di dalam file, tidak berubah walau sheet sumber diedit lagi) — gunakan pola `contoh-dashboard-capreno.html` sebagai acuan: ganti bagian live-fetch dengan `const DATA = [...]` berisi data final.
 
 ## Fitur yang sudah termasuk
 
@@ -28,6 +30,7 @@ Template dashboard demo komersial Capreno (single-file HTML, tanpa build step), 
 
 ## Catatan
 
-- Semua data demo di-hardcode langsung di dalam `const DATA = [...]` pada file HTML — tidak ada backend/database terpisah.
-- Foto diambil dari link Google Drive (field `cap`/`fp` per periode HSA berisi file ID Google Drive).
+- `template-dashboard-capreno.html` mengambil data live dari Google Sheets saat dibuka (lihat bagian di atas); `contoh-dashboard-capreno.html` memakai data statis `const DATA = [...]` di dalam file, tanpa backend/database terpisah.
+- Beberapa field hasil transformasi dari sheet mentah disederhanakan otomatis (mis. "Olah tanah sempurna (menggunakan traktor)" → "Olah tanah sempurna"), kecuali `lokasi` yang ditampilkan apa adanya dari kolom "Lokasi Demo" (alamat lengkap, tidak dipersingkat otomatis seperti pada data South Sumatera asli).
+- Foto diambil dari link Google Drive (field `cap`/`fp` per periode HSA berisi file ID Google Drive, diekstrak dari kolom `linkFoto...` pada sheet).
 - Peta memakai Esri ArcGIS (gratis, tanpa API key) — pastikan koneksi internet saat membuka dashboard agar basemap termuat.
