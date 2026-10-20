@@ -989,6 +989,13 @@ function buildFilterOptions() {
 let savedView = 'landscape';
 try { const v = localStorage.getItem('capreno_view'); if (v === 'mobile' || v === 'landscape') savedView = v; } catch (e) { }
 const S = { page: 1, sel: {}, mapT: 'avg', basemap: 'light', p3: 0, p1m: 0, p2wl: 0, onlyFull: true, dd: null, view: savedView, wilayah: 'Nasional' };
+// buka langsung ke satu wilayah lewat parameter URL, mis. ?wilayah=SS -- supaya tiap Squad
+// bisa dikasih link yang begitu dibuka langsung tersaring ke wilayahnya sendiri, tanpa perlu
+// klik sidebar dulu. Wilayah lain & sidebar tetap bisa diklik seperti biasa setelahnya.
+try {
+  const wq = new URLSearchParams(location.search).get('wilayah');
+  if (wq && ['Nasional', 'SS', 'EJ EI', 'Sulawesi', 'NS', 'CJ', 'WJ'].includes(wq)) S.wilayah = wq;
+} catch (e) { }
 buildFilterOptions();
 const filtered = () => wilData().filter(r => FILTERS.every(f => S.sel[f.k].has(val(r, f))));
 

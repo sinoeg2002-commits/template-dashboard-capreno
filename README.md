@@ -9,11 +9,25 @@ Template dashboard demo komersial Capreno (single-file HTML, tanpa build step), 
 
 ## Cakupan wilayah & sidebar filter
 
-Dashboard ini dirancang untuk menampung demo dari **6 wilayah**: SS, EJ EI, Sulawesi, NS, CJ, WJ. Sidebar di sisi kiri (menyatu dengan header, tetap terlihat saat di-scroll di mode Handphone) berisi filter eksklusif:
+Dashboard ini dirancang untuk menampung demo dari **6 wilayah**: SS, EJ EI, Sulawesi, NS, CJ, WJ. Sidebar di sisi kiri (menyatu dengan header, tetap terlihat saat di-scroll di mode Handphone) berisi filter eksklusif. Saat ini baru **SS, EJ EI, dan Sulawesi** yang sudah ada sumber datanya, jadi tombol sidebar yang tampil baru:
 
-`Nasional` (gabungan semua wilayah) · `SS` · `EJ EI` · `Sulawesi` · `NS` · `CJ` · `WJ`
+`Nasional` (gabungan semua wilayah) · `SS` · `EJ EI` · `Sulawesi`
 
-Tiap tombol menampilkan jumlah demo di wilayah itu. Memilih satu wilayah akan mempersempit seluruh dashboard (skor, peta, filter lain, analisis teks) ke demo wilayah tersebut saja; `Nasional` menampilkan gabungan semuanya. Saat ini baru **SS, EJ EI, dan Sulawesi** yang sudah ada sumber datanya — `NS`, `CJ`, `WJ` tetap muncul di sidebar (jumlah 0) dan tampil kosong tanpa error, siap diisi begitu sheet sumbernya tersedia (lihat bagian berikutnya).
+`NS`, `CJ`, `WJ` untuk sementara disembunyikan dari sidebar (dikomentari di HTML, cari `<!-- NS/CJ/WJ sengaja disembunyikan -->`) sampai sheet sumbernya tersedia — tinggal di-uncomment begitu waktunya tiba, tanpa perlu ubah logika lain (lihat bagian berikutnya).
+
+Tiap tombol menampilkan jumlah demo di wilayah itu. Memilih satu wilayah akan mempersempit seluruh dashboard (skor, peta, filter lain, analisis teks) ke demo wilayah tersebut saja; `Nasional` menampilkan gabungan semuanya.
+
+### Link langsung ke satu wilayah (`?wilayah=...`)
+
+Tambahkan parameter `?wilayah=<nama wilayah>` di URL untuk membuka dashboard yang otomatis tersaring ke wilayah itu saat pertama dibuka (tanpa perlu klik sidebar) — cocok untuk dibagikan ke tiap Squad agar langsung melihat datanya sendiri. Nilainya harus persis salah satu dari `Nasional`, `SS`, `EJ EI` (spasi di-encode jadi `%20`), `Sulawesi`, `NS`, `CJ`, `WJ`; nilai lain/tidak dikenal otomatis jatuh ke `Nasional`. Sidebar & filter lain tetap bisa diklik seperti biasa setelah halaman terbuka. Contoh (ganti domain sesuai URL GitHub Pages repo ini):
+
+```
+https://sinoeg2002-commits.github.io/template-dashboard-capreno/template-dashboard-capreno.html?wilayah=SS
+https://sinoeg2002-commits.github.io/template-dashboard-capreno/template-dashboard-capreno.html?wilayah=EJ%20EI
+https://sinoeg2002-commits.github.io/template-dashboard-capreno/template-dashboard-capreno.html?wilayah=Sulawesi
+```
+
+Parameter ini juga dipertahankan kalau linknya ke halaman utama (`index.html`), karena `index.html` meneruskannya saat redirect ke `template-dashboard-capreno.html`.
 
 ## Cara kerja `template-dashboard-capreno.html` (live Google Sheets, multi-wilayah)
 
@@ -38,7 +52,7 @@ Untuk dashboard **statis** (data dikunci di dalam file, tidak berubah walau shee
 
 ## Fitur yang sudah termasuk
 
-- Sidebar filter wilayah (Nasional/SS/EJ EI/Sulawesi/NS/CJ/WJ) — lihat bagian di atas.
+- Sidebar filter wilayah (Nasional/SS/EJ EI/Sulawesi, NS/CJ/WJ menyusul) + link langsung per wilayah lewat `?wilayah=...` — lihat bagian di atas.
 - 3 halaman: Skoring Herbi FP vs Capreno, Win-Lose Capreno - Herbi FP, Dokumentasi Demo Komersial.
 - Filter multi-kriteria (herbi pembanding, varietas, petugas, lokasi, kabupaten, timing aplikasi, fase daun gulma, olah tanah, pola tanam, bulan tanam) dengan jumlah demo per opsi.
 - Peta sebaran demo (basemap Esri, 2 gaya: Minimal & Terrain) — butuh koneksi internet saat dibuka; tanpa koneksi otomatis fallback ke grid koordinat.
