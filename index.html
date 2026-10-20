@@ -3,45 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=template-dashboard-capreno.html">
 <title>Dashboard Demo Komersial Capreno</title>
 <style>
-  :root{ --navy:#0A2A5E; --blue:#2F6FBF; --orange:#F07016; --line:#E1E7F0; --mut:#5B6A85; --page:#F4F7FB; --card:#fff; --ink:#1C2733; }
-  @media (prefers-color-scheme:dark){ :root{ --page:#0B1322; --card:#131E30; --line:#223049; --ink:#E7ECF4; --mut:#92A2BE; } }
+  :root{ --navy:#0A2A5E; --mut:#5B6A85; --page:#F4F7FB; --ink:#1C2733; --blue:#2F6FBF; }
+  @media (prefers-color-scheme:dark){ :root{ --page:#0B1322; --ink:#E7ECF4; --mut:#92A2BE; } }
   *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:var(--page);color:var(--ink);font-family:'Barlow Semi Condensed','Arial Narrow',Arial,Helvetica,sans-serif;display:flex;flex-direction:column;align-items:center;padding:48px 16px}
-  header{text-align:center;max-width:640px;margin-bottom:32px}
-  h1{font-size:28px;font-weight:700;color:var(--navy);margin:0 0 8px}
-  @media (prefers-color-scheme:dark){ h1{color:#DCE7F7} }
-  p.sub{color:var(--mut);font-size:14px;line-height:1.5;margin:0}
-  .cards{display:grid;grid-template-columns:1fr;gap:16px;width:100%;max-width:640px}
-  a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(10,42,94,.06);transition:border-color .15s,box-shadow .15s}
-  a.card:hover{border-color:var(--orange);box-shadow:0 4px 14px rgba(240,112,22,.14)}
-  .tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:#fff;background:var(--orange);border-radius:8px;padding:2px 8px;margin-bottom:8px}
-  .tag.alt{background:var(--blue)}
-  .card h2{font-size:17px;font-weight:700;margin:0 0 5px;color:var(--navy)}
-  @media (prefers-color-scheme:dark){ .card h2{color:#DCE7F7} }
-  .card p{font-size:12.5px;line-height:1.5;color:var(--mut);margin:0}
-  footer{margin-top:36px;font-size:11px;color:var(--mut);text-align:center;max-width:640px}
-  footer a{color:var(--blue)}
+  body{margin:0;min-height:100vh;background:var(--page);color:var(--ink);font-family:'Barlow Semi Condensed','Arial Narrow',Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;padding:16px;text-align:center}
+  p{font-size:13px;color:var(--mut);margin:0}
+  a{color:var(--blue)}
 </style>
+<script>location.replace('template-dashboard-capreno.html');</script>
 </head>
 <body>
-  <header>
-    <h1>Dashboard Demo Komersial Capreno</h1>
-    <p class="sub">Pilih dashboard yang mau dibuka. Repo ini berisi template dashboard (data live dari Google Sheets) dan satu contoh dashboard dengan data South Sumatera yang sudah terisi penuh.</p>
-  </header>
-  <div class="cards">
-    <a class="card" href="template-dashboard-capreno.html">
-      <span class="tag">Live</span>
-      <h2>Template Dashboard Capreno</h2>
-      <p>Mengambil data terbaru otomatis dari Google Sheets setiap dibuka. Sidebar filter wilayah: Nasional / SS / EJ EI / Sulawesi / NS / CJ / WJ. Butuh koneksi internet.</p>
-    </a>
-    <a class="card" href="contoh-dashboard-capreno.html">
-      <span class="tag alt">Contoh · Statis</span>
-      <h2>Contoh Dashboard Capreno South Sumatera</h2>
-      <p>Salinan dashboard South Sumatera lengkap dengan 21 data demo asli (data statis di dalam file), sebagai referensi format & tampilan saat sudah terisi penuh.</p>
-    </a>
-  </div>
-  <footer>Repo: <a href="https://github.com/sinoeg2002-commits/template-dashboard-capreno">sinoeg2002-commits/template-dashboard-capreno</a></footer>
+  <p>Membuka dashboard&hellip; kalau tidak otomatis pindah, <a href="template-dashboard-capreno.html">klik di sini</a>.</p>
 </body>
 </html>
