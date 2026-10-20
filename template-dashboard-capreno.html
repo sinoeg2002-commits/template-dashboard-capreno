@@ -1017,6 +1017,22 @@ function gdId(url) {
 const BETTER_MAP = { 'Lebih baik': 'baik', 'Sama dengan FP': 'sama', 'Lebih jelek': 'jelek' };
 const PREF_MAP = { 'Plot Capreno': 'cap', 'Plot Bayer': 'cap', 'Plot FP': 'fp' };
 const cleanOlah = s => s ? String(s).replace(/\s*\(.*$/, '').trim() : s;
+// beberapa demo mencatat nama varietas jagung yang sama dengan ejaan berbeda (kode resmi
+// vs nama dagang singkat) -- disatukan ke satu nama supaya tidak pecah jadi opsi filter
+// yang berbeda-beda padahal varietasnya sama.
+const VAR_GROUPS = [
+  { canon: 'Adv Jago', variants: ['adv jago', 'advanta jago'] },
+  { canon: 'NK Perkasa', variants: ['nk perkasa', 'nk6172 (perkasa)', 'nk 6172 (perkasa)'] },
+  { canon: 'NK Sumo', variants: ['nk sumo', 'nk 7328 (sumo)', 'nk7328 (sumo)'] },
+  { canon: 'NK Sumo Sakti', variants: ['nk sumo sakti', 'nk 7328s (sumo sakti)', 'nk7328s (sumo sakti)'] },
+];
+function cleanVar(s) {
+  if (!s) return s;
+  const t = String(s).trim();
+  const key = t.toLowerCase().replace(/\s+/g, ' ');
+  const g = VAR_GROUPS.find(g => g.variants.includes(key));
+  return g ? g.canon : t;
+}
 const BULAN_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 function parseGvizDate(v) {
   if (v == null) return null;
@@ -1136,7 +1152,7 @@ function rowToRecord(row, srcTag, wilayah, col) {
     kab, petugas: g(col.petugas), petani: g(col.petani),
     lokasi: g(col.lokasi), lat, lon,
     timing,
-    fase: g(col.fase), olah: cleanOlah(g(col.olah)), pola: g(col.pola), fp: g(col.fp), var: g(col.var),
+    fase: g(col.fase), olah: cleanOlah(g(col.olah)), pola: g(col.pola), fp: g(col.fp), var: cleanVar(g(col.var)),
     bulan: tanamDt && !isNaN(tanamDt) ? `${BULAN_ID[tanamDt.getMonth()]} ${tanamDt.getFullYear()}` : null,
     bulanKey: tanamDt && !isNaN(tanamDt) ? tanamDt.getFullYear() * 100 + (tanamDt.getMonth() + 1) : null,
     tanam: fmtUS(tanamDt), aplikasi: fmtUS(aplikasiDt),
