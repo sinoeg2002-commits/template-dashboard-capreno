@@ -1558,6 +1558,16 @@ function mapSVG(lmap, W, H) {
     P.forEach(p => { p.x += (p.tx - p.x) * 0.015; p.y += (p.ty - p.y) * 0.015; });
     if (!moved) break;
   }
+  // batasi jarak melenceng dari posisi geografis asli -- di gerombolan demo yang padat
+  // (mis. 1 wilayah dengan puluhan titik berdekatan), gaya dorong di atas bisa menumpuk
+  // dan "melempar" sebuah titik jauh melewati sisi lain peta (misal titik di Jawa Timur
+  // terdorong sampai ke area NTB). Dari sini titik yang kepadatannya tak tertampung cuma
+  // menumpuk rapat di posisi aslinya, bukan melenceng ke lokasi yang salah.
+  const MAX_DRIFT = Math.max(22, Math.min(gw, gh) * 0.14);
+  P.forEach(p => {
+    const ddx = p.x - p.tx, ddy = p.y - p.ty, dd = Math.hypot(ddx, ddy);
+    if (dd > MAX_DRIFT) { const k = MAX_DRIFT / dd; p.x = p.tx + ddx * k; p.y = p.ty + ddy * k; }
+  });
   const inb = p => { p.x = Math.min(ox + gw - 7, Math.max(ox + 7, p.x)); p.y = Math.min(oy + gh - 8, Math.max(oy + 7, p.y)); };
   P.forEach(inb);
   // demo yang tidak lolos filter: titik abu-abu kecil
