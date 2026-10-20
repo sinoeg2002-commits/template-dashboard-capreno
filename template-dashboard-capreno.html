@@ -735,6 +735,9 @@ button{font-family:inherit}
 .dd-l{flex:1;min-width:0}
 .dd-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;font-size:11.5px;color:var(--navy)}
 .dd-h span a{font-size:10px;color:var(--blue);margin-left:8px;cursor:pointer;text-decoration:underline}
+.dd-h span{display:inline-flex;align-items:center}
+.dd-x{margin-left:8px;flex:none;width:18px;height:18px;padding:0;border:none;background:#EEF2F8;border-radius:4px;cursor:pointer;font-size:9.5px;line-height:1;color:var(--navy)}
+.dd-x:hover{background:#E1E7F0}
 .dd-list{max-height:220px;overflow:auto;border-top:1px solid #E1E7F0}
 .opt{display:flex;align-items:center;gap:6px;height:22px;font-size:11.5px;cursor:pointer}
 .opt input{margin:0;width:13px;height:13px;accent-color:var(--or)}
@@ -1982,7 +1985,7 @@ function pieSVG(opts, total, size) {
 }
 function ddHTML(f) {
   const rows = f.opts.map((o, i) => `<label class="opt"><input type="checkbox" data-i="${i}" ${S.sel[f.k].has(o.v) ? 'checked' : ''}><i class="sw" style="background:${PIE[i % PIE.length]}"></i><span class="ol" title="${esc(o.v)}">${esc(o.v)}</span><span class="on">${o.n}</span></label>`).join('');
-  return `<div class="dd-l"><div class="dd-h"><b>${esc(f.label)}</b><span><a data-a="all">Pilih semua</a><a data-a="none">Kosongkan</a></span></div><div class="dd-list">${rows}</div></div><div class="dd-r">${pieSVG(f.opts, wilData().length, 190)}<div class="cap">Komposisi total, n = ${wilData().length} demo</div></div>`;
+  return `<div class="dd-l"><div class="dd-h"><b>${esc(f.label)}</b><span><a data-a="all">Pilih semua</a><a data-a="none">Kosongkan</a><button class="dd-x" type="button" aria-label="Tutup">✕</button></span></div><div class="dd-list">${rows}</div></div><div class="dd-r">${pieSVG(f.opts, wilData().length, 190)}<div class="cap">Komposisi total, n = ${wilData().length} demo</div></div>`;
 }
 function buildFilters() {
   $('filters').innerHTML = FILTERS.map(f => `<button class="fbtn" data-k="${f.k}"><span class="fl">${esc(f.short)}</span><span class="fc" hidden></span><svg width="9" height="6" viewBox="0 0 9 6"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></button>`).join('') + '<button class="reset" id="reset">Atur ulang filter</button>';
@@ -2119,6 +2122,10 @@ function init() {
     const t = e.target;
     if (t.closest('.pm-x')) { closePM(); return; }
     if (t.id === 'pm') { closePM(); return; }
+    if (t.closest('.dd-x')) { closeDD(); return; }
+    // klik di mana pun di luar dropdown filter (#dd) menutupnya -- termasuk klik di dalam
+    // popup peta, yang tidak lewat listener #stage karena #mpm ditaruh di luar #stage.
+    if (S.dd && !t.closest('#dd') && !t.closest('.fbtn')) { closeDD(); }
     const inModal = t.closest('#mpm');
     if (!inModal) return;
     // #mpm sendiri tak lagi menangkap klik (pointer-events:none, supaya tombol filter/sidebar
