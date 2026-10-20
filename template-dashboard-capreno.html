@@ -1436,14 +1436,27 @@ function createLeafletMap(container) {
   setBasemapLayer(map, S.basemap);
   return map;
 }
+// Batas peta Indonesia Sabang-Merauke, dipakai sebagai tampilan tetap untuk wilayah "Nasional"
+// -- supaya peta nasional selalu menampilkan seluruh Indonesia secara utuh, bukan cuma
+// mepet ke titik-titik demo yang kebetulan sudah ada datanya (yang baru mencakup
+// sebagian wilayah saja, dan cakupannya akan berubah-ubah seiring data NS/CJ/WJ ditambah).
+const INDONESIA_BOUNDS = { lat0: -11.5, lat1: 6.5, lon0: 94.5, lon1: 141.5 };
 function fitMapToWilayah(map) {
+  if (S.wilayah === 'Nasional') {
+    const b = INDONESIA_BOUNDS;
+    map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
+    return;
+  }
   const d = wilData();
   const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
   if (lats.length) {
     const lat0 = Math.min(...lats) - 0.2, lat1 = Math.max(...lats) + 0.2, lon0 = Math.min(...lons) - 0.32, lon1 = Math.max(...lons) + 0.32;
     map.fitBounds([[lat0, lon0], [lat1, lon1]], { animate: false });
   } else {
-    map.setView([-2.5, 118], 5);
+    // wilayah belum ada datanya (NS/CJ/WJ) -- tampilkan peta Indonesia utuh juga, bukan
+    // view acak, supaya konsisten dan siap dipakai begitu sheet sumbernya tersambung.
+    const b = INDONESIA_BOUNDS;
+    map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
   }
 }
 const MAP_RETRY = {};
@@ -1470,9 +1483,18 @@ function updateMapPanel(id, W, H, legendH) {
 function mapGeom(W, H) {
   const mL = 30, mT = 4, mR = 8, mB = 12;
   const pw = W - mL - mR, ph = H - mT - mB;
-  const d = wilData();
-  const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
-  const lat0 = Math.min(...lats) - 0.2, lat1 = Math.max(...lats) + 0.2, lon0 = Math.min(...lons) - 0.32, lon1 = Math.max(...lons) + 0.32;
+  let lat0, lat1, lon0, lon1;
+  if (S.wilayah === 'Nasional') {
+    ({ lat0, lat1, lon0, lon1 } = INDONESIA_BOUNDS);
+  } else {
+    const d = wilData();
+    const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
+    if (lats.length) {
+      lat0 = Math.min(...lats) - 0.2; lat1 = Math.max(...lats) + 0.2; lon0 = Math.min(...lons) - 0.32; lon1 = Math.max(...lons) + 0.32;
+    } else {
+      ({ lat0, lat1, lon0, lon1 } = INDONESIA_BOUNDS);
+    }
+  }
   const k = Math.min(pw / (lon1 - lon0), ph / (lat1 - lat0));
   const gw = (lon1 - lon0) * k, gh = (lat1 - lat0) * k;
   const ox = mL + (pw - gw) / 2, oy = mT + (ph - gh) / 2;
