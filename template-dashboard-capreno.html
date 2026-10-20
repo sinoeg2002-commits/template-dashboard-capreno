@@ -1483,14 +1483,16 @@ function createLeafletMap(container, interactive = false) {
   setBasemapLayer(map, S.basemap);
   return map;
 }
-// Batas peta Indonesia Sabang-Merauke, dipakai sebagai tampilan tetap untuk wilayah "Nasional"
-// -- supaya peta nasional selalu menampilkan seluruh Indonesia secara utuh, bukan cuma
-// mepet ke titik-titik demo yang kebetulan sudah ada datanya (yang baru mencakup
-// sebagian wilayah saja, dan cakupannya akan berubah-ubah seiring data NS/CJ/WJ ditambah).
-const INDONESIA_BOUNDS = { lat0: -11.5, lat1: 6.5, lon0: 94.5, lon1: 141.5 };
+// Batas tampilan tetap untuk wilayah "Nasional": Sumatra, Kalimantan, Jawa, NTB, Sulawesi
+// -- yaitu wilayah yang memang dicakup dashboard ini (SS/NS/CJ/WJ di Sumatra-Jawa, EJ EI
+// di Jawa Timur-NTB, Sulawesi). Sengaja TIDAK sampai Sabang-Merauke penuh (Maluku/Papua):
+// panel popup berbentuk potret (lebih tinggi dari lebar), jadi kalau dipaksa memuat seluruh
+// Indonesia yang sangat melebar, peta harus zoom-out jauh dan malah menampilkan negara
+// tetangga (Thailand/Filipina/dst) dengan detail wilayah sendiri jadi kecil.
+const NASIONAL_VIEW_BOUNDS = { lat0: -10, lat1: 6.5, lon0: 94.5, lon1: 126 };
 function fitMapToWilayah(map) {
   if (S.wilayah === 'Nasional') {
-    const b = INDONESIA_BOUNDS;
+    const b = NASIONAL_VIEW_BOUNDS;
     map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
     return;
   }
@@ -1501,9 +1503,9 @@ function fitMapToWilayah(map) {
     map.fitBounds([[lat0, lon0], [lat1, lon1]], { animate: false });
   } else {
     // wilayah belum ada datanya (NS/CJ/WJ), atau semua demo di wilayah ini kebetulan tak
-    // punya koordinat valid -- tampilkan peta Indonesia utuh juga, bukan view acak, supaya
+    // punya koordinat valid -- tampilkan tampilan nasional juga, bukan view acak, supaya
     // konsisten dan siap dipakai begitu sheet sumbernya tersambung/datanya diperbaiki.
-    const b = INDONESIA_BOUNDS;
+    const b = NASIONAL_VIEW_BOUNDS;
     map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
   }
 }
@@ -1541,14 +1543,14 @@ function mapGeom(W, H) {
   const pw = W - mL - mR, ph = H - mT - mB;
   let lat0, lat1, lon0, lon1;
   if (S.wilayah === 'Nasional') {
-    ({ lat0, lat1, lon0, lon1 } = INDONESIA_BOUNDS);
+    ({ lat0, lat1, lon0, lon1 } = NASIONAL_VIEW_BOUNDS);
   } else {
     const d = withGeo(wilData());
     const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
     if (lats.length) {
       lat0 = Math.min(...lats) - 0.2; lat1 = Math.max(...lats) + 0.2; lon0 = Math.min(...lons) - 0.32; lon1 = Math.max(...lons) + 0.32;
     } else {
-      ({ lat0, lat1, lon0, lon1 } = INDONESIA_BOUNDS);
+      ({ lat0, lat1, lon0, lon1 } = NASIONAL_VIEW_BOUNDS);
     }
   }
   const k = Math.min(pw / (lon1 - lon0), ph / (lat1 - lat0));
