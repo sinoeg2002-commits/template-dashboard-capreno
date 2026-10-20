@@ -812,6 +812,17 @@ a.ph:hover{border-color:var(--or)}
 .pm-h .mut{flex:1;color:var(--mut);font-size:11px}
 .pm-x{flex:none;width:26px;height:26px;padding:0;border:none;background:#EEF2F8;border-radius:5px;cursor:pointer;font-size:13px;color:var(--navy)}
 .pm-x:hover{background:#E1E7F0}
+.mpm{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(10,26,58,.66)}
+.mpm[hidden]{display:none}
+.mpm-box{width:920px;max-width:94%;background:#fff;border-radius:10px;padding:14px 16px 16px;box-shadow:0 20px 50px rgba(0,0,0,.4);display:flex;flex-direction:column}
+.mpm-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.mpm-h b{font-size:14px;color:var(--navy)}
+.mpm-h .mut{flex:1;color:var(--mut);font-size:11px}
+.mpm-x{flex:none;width:26px;height:26px;padding:0;border:none;background:#EEF2F8;border-radius:5px;cursor:pointer;font-size:13px;color:var(--navy)}
+.mpm-x:hover{background:#E1E7F0}
+.mpm-body{position:relative;width:100%;height:min(70vh,640px);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+#mapModal{position:absolute;inset:0}
+#p1map .mapov,#p2map .mapov{cursor:zoom-in}
 .pm-imgs{display:flex;gap:14px}
 .pm-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px}
 .pm-col .tag{width:74px;flex:none}
@@ -889,6 +900,7 @@ a.ph:hover{border-color:var(--or)}
 </div>
 </div>
 <div id="pm" class="pm" hidden></div>
+<div id="mpm" class="mpm" hidden></div>
 <script>
 /* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
@@ -1777,6 +1789,27 @@ function openPM(rid, h) {
   const pm = $('pm'); pm.innerHTML = photoModalHTML(r, h); pm.hidden = false;
 }
 function closePM() { const pm = $('pm'); if (pm.hidden) return; pm.hidden = true; pm.innerHTML = ''; }
+let mapModalDims = null;
+function mapModalHTML() {
+  return `<div class="mpm-box"><div class="mpm-h"><b>Sebaran demo dan win-lose</b><span class="mut">Wilayah: ${esc(S.wilayah)}</span><button class="mpm-x" type="button" aria-label="Tutup">✕</button></div><div class="mpm-body"><div class="panel" id="mapModal"></div></div></div>`;
+}
+function openMapModal() {
+  const mpm = $('mpm');
+  mpm.innerHTML = mapModalHTML();
+  mpm.hidden = false;
+  requestAnimationFrame(() => {
+    const panel = $('mapModal');
+    if (!panel) return;
+    mapModalDims = { W: panel.clientWidth, H: panel.clientHeight };
+    updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50);
+  });
+}
+function closeMapModal() {
+  const mpm = $('mpm'); if (mpm.hidden) return;
+  mpm.hidden = true; mpm.innerHTML = '';
+  if (LMAPS['mapModal']) { LMAPS['mapModal'].remove(); delete LMAPS['mapModal']; }
+  mapModalDims = null;
+}
 const PER_PAGE = 2;
 function p3HTML(recs) {
   const list = p3List(recs), pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
@@ -1935,6 +1968,7 @@ function closeDD() { S.dd = null; const dd = $('dd'); dd.hidden = true; updateFi
 function renderMaps() {
   if (S.page === 1) updateMapPanel('p1map', 270, 380, 50);
   if (S.page === 2) updateMapPanel('p2map', 322, 380, 34);
+  if (!$('mpm').hidden && mapModalDims) updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50);
 }
 function updateSidebar() {
   document.querySelectorAll('.sb-btn').forEach(b => {
@@ -2010,14 +2044,13 @@ function init() {
   st.addEventListener('click', e => {
     const t = e.target;
     const ph = t.closest('.ph[data-rid]'); if (ph) { e.preventDefault(); openPM(ph.dataset.rid, ph.dataset.h); return; }
-    if (t.closest('.pm-x')) { closePM(); return; }
-    if (t.id === 'pm') { closePM(); return; }
     const sb = t.closest('.sb-btn'); if (sb) { S.wilayah = sb.dataset.w; buildFilterOptions(); S.p3 = 0; S.p1m = 0; S.p2wl = 0; closeDD(); Object.values(LMAPS).forEach(m => { if (m) fitMapToWilayah(m); }); render(); return; }
     const tab = t.closest('.tab'); if (tab) { S.page = +tab.dataset.p; closeDD(); render(); return; }
     const fb = t.closest('.fbtn'); if (fb) { openDD(fb.dataset.k); return; }
     if (t.closest('#reset')) { FILTERS.forEach(f => { S.sel[f.k] = new Set(f.opts.map(o => o.v)); }); S.p3 = 0; if (S.dd) { const f = FILTERS.find(x => x.k === S.dd); $('dd').innerHTML = ddHTML(f); } render(); return; }
     const bm = t.closest('[data-bm]'); if (bm) { S.basemap = bm.dataset.bm; Object.keys(LMAPS).forEach(k => setBasemapLayer(LMAPS[k], S.basemap)); renderMaps(); return; }
     const pill = t.closest('.pill'); if (pill) { S.mapT = pill.dataset.map; renderMaps(); return; }
+    const mapPanel = t.closest('#p1map, #p2map'); if (mapPanel) { openMapModal(); return; }
     const p1mBtn = t.closest('[data-p1m]'); if (p1mBtn) { S.p1m = (S.p1m + (+p1mBtn.dataset.p1m) + MATRIX_VIEWS.length) % MATRIX_VIEWS.length; render(); return; }
     const p1mDot = t.closest('[data-p1mgo]'); if (p1mDot) { S.p1m = +p1mDot.dataset.p1mgo; render(); return; }
     const p2wlBtn = t.closest('[data-p2wl]'); if (p2wlBtn) { S.p2wl = (S.p2wl + (+p2wlBtn.dataset.p2wl) + MATRIX_VIEWS.length) % MATRIX_VIEWS.length; render(); return; }
@@ -2036,7 +2069,20 @@ function init() {
       S.p3 = 0; render();
     }
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDD(); closePM(); } });
+  document.addEventListener('click', e => {
+    // #pm dan #mpm sengaja ditaruh di luar #stage (supaya ukurannya tidak ikut ter-zoom
+    // bareng kanvas dashboard), jadi interaksi di dalamnya tidak lewat listener #stage di
+    // atas dan perlu ditangani di sini.
+    const t = e.target;
+    if (t.closest('.pm-x')) { closePM(); return; }
+    if (t.id === 'pm') { closePM(); return; }
+    const inModal = t.closest('#mpm');
+    if (!inModal) return;
+    if (t.closest('.mpm-x') || t.id === 'mpm') { closeMapModal(); return; }
+    const bm = t.closest('[data-bm]'); if (bm) { S.basemap = bm.dataset.bm; Object.keys(LMAPS).forEach(k => setBasemapLayer(LMAPS[k], S.basemap)); renderMaps(); return; }
+    const pill = t.closest('.pill'); if (pill) { S.mapT = pill.dataset.map; renderMaps(); return; }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDD(); closePM(); closeMapModal(); } });
   // semua event listener sudah terpasang di atas -- baru render pertama kali di sini,
   // dibungkus try/catch supaya error tak terduga (mis. dari basemap peta) tidak pernah
   // sampai membatalkan pemasangan listener klik/filter di atas.
