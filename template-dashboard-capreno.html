@@ -949,6 +949,11 @@ const FILTERS = [
 const val = (r, f) => { const v = f.get(r); return v == null ? NA : v; };
 const TERRITORIES = ['Nasional', 'SS', 'EJ EI', 'Sulawesi', 'NS', 'CJ', 'WJ'];
 const wilData = () => S.wilayah === 'Nasional' ? DATA : DATA.filter(r => r.wilayah === S.wilayah);
+// demo dengan koordinat kosong/tak terbaca (lat/lon null atau NaN) wajib disaring sebelum
+// dipakai untuk peta -- Math.min/Math.max menganggap null sebagai 0, jadi satu saja demo
+// dengan koordinat rusak bisa menyeret batas peta sejauh ribuan km (sampai ke lepas pantai
+// Afrika Barat, lon 0) dan membuat seluruh wilayah tampil salah/zoom sangat jauh.
+const withGeo = recs => recs.filter(r => r.lat != null && r.lon != null && !isNaN(r.lat) && !isNaN(r.lon));
 function buildFilterOptions() {
   const base = wilData();
   FILTERS.forEach(f => {
@@ -1459,14 +1464,15 @@ function fitMapToWilayah(map) {
     map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
     return;
   }
-  const d = wilData();
+  const d = withGeo(wilData());
   const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
   if (lats.length) {
     const lat0 = Math.min(...lats) - 0.2, lat1 = Math.max(...lats) + 0.2, lon0 = Math.min(...lons) - 0.32, lon1 = Math.max(...lons) + 0.32;
     map.fitBounds([[lat0, lon0], [lat1, lon1]], { animate: false });
   } else {
-    // wilayah belum ada datanya (NS/CJ/WJ) -- tampilkan peta Indonesia utuh juga, bukan
-    // view acak, supaya konsisten dan siap dipakai begitu sheet sumbernya tersambung.
+    // wilayah belum ada datanya (NS/CJ/WJ), atau semua demo di wilayah ini kebetulan tak
+    // punya koordinat valid -- tampilkan peta Indonesia utuh juga, bukan view acak, supaya
+    // konsisten dan siap dipakai begitu sheet sumbernya tersambung/datanya diperbaiki.
     const b = INDONESIA_BOUNDS;
     map.fitBounds([[b.lat0, b.lon0], [b.lat1, b.lon1]], { animate: false });
   }
@@ -1499,7 +1505,7 @@ function mapGeom(W, H) {
   if (S.wilayah === 'Nasional') {
     ({ lat0, lat1, lon0, lon1 } = INDONESIA_BOUNDS);
   } else {
-    const d = wilData();
+    const d = withGeo(wilData());
     const lats = d.map(r => r.lat), lons = d.map(r => r.lon);
     if (lats.length) {
       lat0 = Math.min(...lats) - 0.2; lat1 = Math.max(...lats) + 0.2; lon0 = Math.min(...lons) - 0.32; lon1 = Math.max(...lons) + 0.32;
@@ -1543,7 +1549,7 @@ function mapSVG(lmap, W, H) {
     }
   }
   // posisi + relaksasi agar segitiga tidak saling menutup
-  const P = wilData().map(r => { const p = project(r.lat, r.lon); return { r, tx: p.x, ty: p.y, x: p.x, y: p.y }; });
+  const P = withGeo(wilData()).map(r => { const p = project(r.lat, r.lon); return { r, tx: p.x, ty: p.y, x: p.x, y: p.y }; });
   const D = 14;
   for (let it = 0; it < 80; it++) {
     let moved = false;
