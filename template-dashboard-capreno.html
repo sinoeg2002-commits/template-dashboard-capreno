@@ -812,9 +812,9 @@ a.ph:hover{border-color:var(--or)}
 .pm-h .mut{flex:1;color:var(--mut);font-size:11px}
 .pm-x{flex:none;width:26px;height:26px;padding:0;border:none;background:#EEF2F8;border-radius:5px;cursor:pointer;font-size:13px;color:var(--navy)}
 .pm-x:hover{background:#E1E7F0}
-.mpm{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(10,26,58,.66)}
+.mpm{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(10,26,58,.66);pointer-events:none}
 .mpm[hidden]{display:none}
-.mpm-box{width:920px;max-width:94%;background:#fff;border-radius:10px;padding:14px 16px 16px;box-shadow:0 20px 50px rgba(0,0,0,.4);display:flex;flex-direction:column}
+.mpm-box{width:920px;max-width:94%;background:#fff;border-radius:10px;padding:14px 16px 16px;box-shadow:0 20px 50px rgba(0,0,0,.4);display:flex;flex-direction:column;pointer-events:auto}
 .mpm-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
 .mpm-h b{font-size:14px;color:var(--navy)}
 .mpm-h .mut{flex:1;color:var(--mut);font-size:11px}
@@ -823,6 +823,13 @@ a.ph:hover{border-color:var(--or)}
 .mpm-body{position:relative;width:100%;height:min(70vh,640px);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
 #mapModal{position:absolute;inset:0}
 #p1map .mapov,#p2map .mapov{cursor:zoom-in}
+/* peta di dalam popup interaktif (geser/zoom) -- biarkan klik di area kosong .mapov tembus
+   ke peta Leaflet (.mapbase) di bawahnya, kecuali pada pill/legend/marker yang memang perlu
+   diklik/di-hover sendiri. Hanya berlaku di dalam popup, peta kecil (p1map/p2map) tak disentuh. */
+#mapModal .mapov{pointer-events:none}
+#mapModal .mapov .mhead,#mapModal .mapov .mlegend,#mapModal .mapov [data-tip]{pointer-events:auto}
+#mapModal .leaflet-top{top:54px}
+#mapModal .leaflet-control-zoom a{width:28px;height:28px;line-height:28px;font-size:16px}
 .pm-imgs{display:flex;gap:14px}
 .pm-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px}
 .pm-col .tag{width:74px;flex:none}
@@ -1434,11 +1441,11 @@ function setBasemapLayer(map, style) {
   layer.addTo(map);
   map._baseLayer = layer;
 }
-function createLeafletMap(container) {
+function createLeafletMap(container, interactive = false) {
   if (typeof L === 'undefined') return null;
   const map = L.map(container, {
-    zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false,
-    doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false, attributionControl: false,
+    zoomControl: interactive, dragging: interactive, touchZoom: interactive, scrollWheelZoom: interactive,
+    doubleClickZoom: interactive, boxZoom: interactive, keyboard: interactive, tap: interactive, attributionControl: false,
   });
   const status = document.createElement('div');
   status.className = 'mapstatus';
@@ -1478,7 +1485,7 @@ function fitMapToWilayah(map) {
   }
 }
 const MAP_RETRY = {};
-function updateMapPanel(id, W, H, legendH) {
+function updateMapPanel(id, W, H, legendH, interactive = false) {
   const panel = $(id);
   let base = panel.querySelector('.mapbase');
   if (!base) {
@@ -1489,7 +1496,15 @@ function updateMapPanel(id, W, H, legendH) {
     LMAPS[id].invalidateSize(false);
   } else if (typeof L !== 'undefined') {
     // Leaflet baru selesai dimuat (mis. lewat CDN cadangan) -- baru sekarang buat peta sungguhan
-    LMAPS[id] = createLeafletMap(base);
+    LMAPS[id] = createLeafletMap(base, interactive);
+    if (interactive && LMAPS[id]) {
+      // peta interaktif (popup): saat digeser/di-zoom manual, gambar ulang overlay segitiga
+      // win-lose supaya posisinya tetap pas mengikuti tampilan peta yang baru.
+      LMAPS[id].on('moveend zoomend', () => {
+        const ov = panel.querySelector('.mapov');
+        if (ov) ov.innerHTML = mapPanelHTML(LMAPS[id], W, H, legendH);
+      });
+    }
   } else {
     // Leaflet/CDN belum siap -- coba lagi beberapa kali sebelum menyerah ke grid koordinat
     const n = (MAP_RETRY[id] = (MAP_RETRY[id] || 0) + 1);
@@ -1813,11 +1828,23 @@ function openMapModal() {
   const mpm = $('mpm');
   mpm.innerHTML = mapModalHTML();
   mpm.hidden = false;
+  // popup tidak lagi memblokir klik di luar kotaknya (lihat CSS .mpm), tapi KOTAK popup
+  // sendiri tetap solid -- kalau dibiarkan rata tengah penuh, kotaknya sendiri bisa
+  // menutupi tombol filter di header. Geser ke bawah supaya header (termasuk filter)
+  // selalu bebas dari kotak popup, berapa pun ukuran layar/skala zoom kanvasnya.
+  const hdr = $('hdr');
+  const clear = hdr ? Math.max(0, hdr.getBoundingClientRect().bottom + 10) : 0;
+  mpm.style.paddingTop = clear + 'px';
+  // sisa tinggi layar di bawah header juga membatasi tinggi kotak popup -- supaya tak
+  // kepotong di bawah layar pendek, bukan cuma mengandalkan 70vh/640px tetap.
+  const availH = window.innerHeight - clear - 110;
+  const body = mpm.querySelector('.mpm-body');
+  if (body) body.style.height = Math.max(220, Math.min(640, availH)) + 'px';
   requestAnimationFrame(() => {
     const panel = $('mapModal');
     if (!panel) return;
     mapModalDims = { W: panel.clientWidth, H: panel.clientHeight };
-    updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50);
+    updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50, true);
   });
 }
 function closeMapModal() {
@@ -1984,7 +2011,7 @@ function closeDD() { S.dd = null; const dd = $('dd'); dd.hidden = true; updateFi
 function renderMaps() {
   if (S.page === 1) updateMapPanel('p1map', 270, 380, 50);
   if (S.page === 2) updateMapPanel('p2map', 322, 380, 34);
-  if (!$('mpm').hidden && mapModalDims) updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50);
+  if (!$('mpm').hidden && mapModalDims) updateMapPanel('mapModal', mapModalDims.W, mapModalDims.H, 50, true);
 }
 function updateSidebar() {
   document.querySelectorAll('.sb-btn').forEach(b => {
@@ -2094,7 +2121,10 @@ function init() {
     if (t.id === 'pm') { closePM(); return; }
     const inModal = t.closest('#mpm');
     if (!inModal) return;
-    if (t.closest('.mpm-x') || t.id === 'mpm') { closeMapModal(); return; }
+    // #mpm sendiri tak lagi menangkap klik (pointer-events:none, supaya tombol filter/sidebar
+    // di belakangnya tetap bisa diklik) -- jadi menutup popup lewat klik di luar kotak sudah
+    // tak berlaku lagi, cuma lewat tombol X ini atau Escape.
+    if (t.closest('.mpm-x')) { closeMapModal(); return; }
     const bm = t.closest('[data-bm]'); if (bm) { S.basemap = bm.dataset.bm; Object.keys(LMAPS).forEach(k => setBasemapLayer(LMAPS[k], S.basemap)); renderMaps(); return; }
     const pill = t.closest('.pill'); if (pill) { S.mapT = pill.dataset.map; renderMaps(); return; }
   });
